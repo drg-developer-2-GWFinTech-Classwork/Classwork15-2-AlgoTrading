@@ -48,11 +48,12 @@ def main():
     generate_signals()
 
     execute_backtest()
-    evaluate_metrics()
+    # evaluate_metrics()
 
     execute_trade_strategy()
+    evaluate_metrics()
 
     build_dashboard()
-    update_dashboard()
+    # update_dashboard()
 
     return
