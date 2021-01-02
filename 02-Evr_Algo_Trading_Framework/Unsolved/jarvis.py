@@ -36,12 +36,10 @@ def build_dashboard(signals_df, portfolio_evaluation_df, trade_evaluation_df):
 
 def fetch_data():
     """Fetches the latest prices."""
-    # Set the file path and read CSV into a Pandas DataFrame
-    filepath = Path("../Resources/aapl.csv")
-    data_df = pd.read_csv(filepath)
-
-    # Print the DataFrame
-    print(data_df.head())
+    load_dotenv()
+    kraken_public_key = os.getenv("KRAKEN_PUBLIC_KEY")
+    kraken_secret_key = os.getenv("KRAKEN_SECRET_KEY")
+    ...
     return data_df
 
 
@@ -253,7 +251,11 @@ def main():
     while True:
         global account
         global df
-        aapl_df = fetch_data()
+
+        new_df = fetch_data()
+        df = df.append(new_df, ...)
+
+
         signals_df = generate_signals(aapl_df)
         execute_backtest(signals_df)
         execute_trade_strategy()

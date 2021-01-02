@@ -6,32 +6,50 @@ import pandas as pd
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
 
+global new_df  # = pd.DataFrame()
+
+
 def initialize(cash=None):
     """Initialize the dashboard, data storage, and account balances."""
     print("Initializing Account and DataFrame")
 
     # @TODO: Update to build the plot
     # Initialize Account
-    
+    account = {"balance": cash, "shares": 0}
 
     # Initialize DataFrame
-    # @TODO: We will update this later!
-    
+    df = fetch_data()
 
     # Initialize the plot
-    
 
-    # @TODO: We will complete the rest of this later!
-    
+    return account, df
+
 
 def build_plot(df):
     """Build the plot."""
 
-    # @TODO: Build the Initial Plot!
-    
-    return
+    plt = df.hvplot.line()
+    return plt
 
-# @TODO: Create a function to update the plot!
+
+def build_dashboard():
+    """Build the dashboard."""
+
+    price_df = signals_df[["close", "SMA50", "SMA100"]]
+    price_chart = price_df.hvplot.line()
+    price_chart.opts(xaxis=None)
+
+    portfolio_evaluation_df.reset_index(inplace=True)
+    portfolio_evaluation_table = portfolio_evaluation_df.hvplot.table()
+
+    trade_evaluation_table = trade_evaluation_df.hvplot.table()
+
+    # Assemble dashboard visualization
+    return price_chart + portfolio_evaluation_table + trade_evaluation_table
+
+
+def update_plot():
+    return None
 
 
 def fetch_data():
@@ -46,6 +64,9 @@ def fetch_data():
     datetime = kraken.fetch_ticker("BTC/USD")["datetime"]
     df = pd.DataFrame({"close": [close]})
     df.index = pd.to_datetime([datetime])
+
+    new_df = df
+
     return df
 
 
@@ -83,14 +104,14 @@ def execute_trade_strategy(signals, account):
         print("Buy")
         number_to_buy = round(account["balance"] / signals["close"].iloc[-1], 0) * 0.001
         account["balance"] -= number_to_buy * signals["close"].iloc[-1]
-        account["shares"] += number_to_buy        
+        account["shares"] += number_to_buy
     elif signals["entry/exit"].iloc[-1] == -1.0:
         print("Sell")
         account["balance"] += signals["close"].iloc[-1] * account["shares"]
         account["shares"] = 0
     else:
         print("Hold")
-        
+
     print(f"Account balance: ${account['balance']}")
     print(f"Account shares : {account['shares']}")
     print("**Trading Strategy Executed**")
@@ -98,4 +119,31 @@ def execute_trade_strategy(signals, account):
     return account
 
 
-# @TODO: Set the initial configurations and update the main loop to use asyncio
+print("Initializing account and DataFrame")
+account, df = initialize(10000)
+print(df)
+
+
+def main():
+
+    while True:
+        global account
+        global df
+        global new_df
+
+        # Fetch and save new data
+        # new_df = fetch_data()
+        df = df.append(new_df, ignore_index=True)
+        min_window = 22
+        if df.shape[0] >= min_window:
+            signals = generate_signals(df)
+            print(signals)
+            account = execute_trade_strategy(signals, account)
+        time.sleep(1)
+
+
+initialize(cash=100e3)
+loop = asyncio.get_event_loop()
+fetch_data_task = loop.create_task(fetch_data())
+
+loop.execute(main())
