@@ -7,6 +7,11 @@ from dotenv import load_dotenv
 import matplotlib.pyplot as plt
 
 
+def calculate_company_value(revenue, assets, debt, projected_sales):
+    revenue = assets - debt + revenue
+    return revenue
+
+
 def initialize(cash=None):
     """Initialize the plot, data storage, and account balances."""
     print("Initializing Account and DataFrame")
@@ -94,19 +99,20 @@ def execute_trade_strategy(signals, account):
         print("Buy")
         number_to_buy = round(account["balance"] / signals["close"].iloc[-1], 0) * 0.001
         account["balance"] -= number_to_buy * signals["close"].iloc[-1]
-        account["shares"] += number_to_buy        
+        account["shares"] += number_to_buy
     elif signals["entry/exit"].iloc[-1] == -1.0:
         print("Sell")
         account["balance"] += signals["close"].iloc[-1] * account["shares"]
         account["shares"] = 0
     else:
         print("Hold")
-        
+
     print(f"Account balance: ${account['balance']}")
     print(f"Account shares : {account['shares']}")
     print("**Trading Strategy Executed**")
 
     return account
+
 
 # @TODO: Set the initial configurations and update the main loop to use asyncio
 # Set the initial account configuration
@@ -117,6 +123,7 @@ plt.ion()
 
 # Show the initial line chart
 plt.show()
+
 
 async def main():
     loop = asyncio.get_event_loop()
